@@ -1,0 +1,35 @@
+name: Daily Engineering Update
+
+on:
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install openai
+
+      - name: Run update script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/update_log.py
+
+      - name: Commit & Push
+        run: |
+          git config --local user.email "nsblink187@gmail.com"
+          git config --local user.name "navyaaasingh"
+          git add .
+          git commit -m "Automated daily engineering update" || echo "No changes"
+          git push
