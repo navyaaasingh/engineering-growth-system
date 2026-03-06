@@ -15,16 +15,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Generate random commits
         run: |
           python scripts/update_log.py
-          
+
+          # configure git identity
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          # pull latest remote commits to avoid push conflicts
+          git pull --rebase origin main
+
           COMMITS=$((RANDOM % 9 + 2))
           echo "Making $COMMITS commits"
 
@@ -32,7 +41,7 @@ jobs:
           do
             echo "Commit $i at $(date)" >> data/commit_log.txt
             git add .
-            git commit -m "Automated random commit $i"
+            git commit -m "Automated random commit $i" || echo "No changes"
           done
 
-          git push
+          git push origin main
