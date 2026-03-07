@@ -16,9 +16,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
+          fetch-depth: 0
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -27,21 +27,28 @@ jobs:
         run: |
           python scripts/update_log.py
 
-          # configure git identity
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          # pull latest remote commits to avoid push conflicts
+          # synchronize repo history
           git pull --rebase origin main
 
           COMMITS=$((RANDOM % 9 + 2))
-          echo "Making $COMMITS commits"
+          echo "Creating $COMMITS commits"
 
           for i in $(seq 1 $COMMITS)
           do
-            echo "Commit $i at $(date)" >> data/commit_log.txt
-            git add .
-            git commit -m "Automated random commit $i" || echo "No changes"
+            OFFSET=$((RANDOM % 86400))
+            DATE=$(date -d "$OFFSET seconds ago" +"%Y-%m-%d %H:%M:%S")
+
+            echo "Commit $i at $DATE" >> data/commit_log.txt
+
+            git add data/commit_log.txt
+
+            if ! git diff --cached --quiet; then
+              GIT_AUTHOR_DATE="$DATE" GIT_COMMITTER_DATE="$DATE" \
+              git commit -m "Automated random commit $i"
+            fi
           done
 
           git push origin main
