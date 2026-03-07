@@ -25,13 +25,14 @@ jobs:
 
       - name: Generate random commits
         run: |
-          python scripts/update_log.py
-
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          # synchronize repo history
+          # FIRST sync repository
           git pull --rebase origin main
+
+          # THEN modify files
+          python scripts/update_log.py
 
           COMMITS=$((RANDOM % 9 + 2))
           echo "Creating $COMMITS commits"
@@ -43,7 +44,7 @@ jobs:
 
             echo "Commit $i at $DATE" >> data/commit_log.txt
 
-            git add data/commit_log.txt
+            git add .
 
             if ! git diff --cached --quiet; then
               GIT_AUTHOR_DATE="$DATE" GIT_COMMITTER_DATE="$DATE" \
