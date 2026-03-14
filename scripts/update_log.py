@@ -14,13 +14,21 @@ def run_command(cmd, error_msg, allow_fail=False):
     return result.stdout.strip()
 
 
+print("Syncing repository...")
+
+# configure git identity
+run_command('git config user.name "github-actions"', "Failed to set git username")
+run_command('git config user.email "github-actions@github.com"', "Failed to set git email")
+
+# pull latest commits first
+run_command("git pull --rebase origin main", "Failed to pull latest changes")
+
 today = str(datetime.date.today())
 
 os.makedirs("data", exist_ok=True)
-
 log_path = "data/daily_log.json"
 
-# Load JSON safely
+# load existing log safely
 if os.path.exists(log_path):
     try:
         with open(log_path, "r") as f:
@@ -49,25 +57,27 @@ print(f"Generated {num_updates} updates for {today}.")
 
 print("\nCommitting and pushing to GitHub...")
 
-# Sync repository first
-run_command("git pull --rebase origin main", "Failed to pull latest changes")
-
+# stage file
 run_command("git add data/daily_log.json", "Failed to stage file")
 
 commit_msg = f"chore: log {num_updates} updates for {today}"
 
-# Allow commit to fail if nothing changed
-result = subprocess.run(f'git commit -m "{commit_msg}"', shell=True, capture_output=True, text=True)
+# commit (allow empty commit case)
+commit = subprocess.run(
+    f'git commit -m "{commit_msg}"',
+    shell=True,
+    capture_output=True,
+    text=True
+)
 
-if result.returncode != 0:
-    if "nothing to commit" in result.stderr or "nothing to commit" in result.stdout:
-        print("No changes to commit.")
+if commit.returncode != 0:
+    if "nothing to commit" in commit.stderr.lower() or "nothing to commit" in commit.stdout.lower():
+        print("No new changes to commit.")
     else:
-        print(result.stderr)
+        print(commit.stderr)
         sys.exit(1)
 
-run_command("git pull --rebase origin main", "Failed to pull latest changes")
-
+# push
 run_command("git push origin main", "Failed to push to remote")
 
-print(f"Finished GitHub update.")
+print("GitHub update completed successfully.")
