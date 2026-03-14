@@ -57,7 +57,16 @@ run_command("git add data/daily_log.json", "Failed to stage file")
 commit_msg = f"chore: log {num_updates} updates for {today}"
 
 # Allow commit to fail if nothing changed
-run_command(f'git commit -m "{commit_msg}"', "Commit skipped", allow_fail=True)
+result = subprocess.run(f'git commit -m "{commit_msg}"', shell=True, capture_output=True, text=True)
+
+if result.returncode != 0:
+    if "nothing to commit" in result.stderr or "nothing to commit" in result.stdout:
+        print("No changes to commit.")
+    else:
+        print(result.stderr)
+        sys.exit(1)
+
+run_command("git pull --rebase origin main", "Failed to pull latest changes")
 
 run_command("git push origin main", "Failed to push to remote")
 
