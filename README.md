@@ -1,6 +1,6 @@
-# 🚀 Engineering Growth System
+# Engineering Growth System
 
-## 📊 Metrics
+## Metrics
 
 This repository automatically tracks daily engineering progress.
 
@@ -9,8 +9,6 @@ This repository automatically tracks daily engineering progress.
 - Hours Studied: Auto-tracked
 - Streak: Auto-calculated
 
----
-
-## 📅 Weekly Summary
+## Weekly Summary
 
 See data/weekly_summary.md
