@@ -6,9 +6,10 @@ Fetches GitHub commit stats and writes them to data/metrics.json
 import json
 import os
 import urllib.request
-from datetime import datetime, timezone
+import urllib.error
+from datetime import datetime, timezone, timedelta
 
-GITHUB_USERNAME = os.environ.get("GITHUB_USERNAME", "your-username")
+GITHUB_USERNAME = os.environ.get("GITHUB_USERNAME", "navyaaasingh")  # fallback hardcoded
 GITHUB_TOKEN    = os.environ.get("GITHUB_TOKEN", "")
 METRICS_FILE    = "data/metrics.json"
 
@@ -20,8 +21,15 @@ def fetch_recent_commits():
         req.add_header("Authorization", f"Bearer {GITHUB_TOKEN}")
     req.add_header("User-Agent", "engineering-growth-system")
 
-    with urllib.request.urlopen(req) as resp:
-        events = json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req) as resp:
+            events = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        print(f"⚠️  GitHub API error: {e.code} {e.reason}. Using cached data.")
+        return [], 0
+    except Exception as e:
+        print(f"⚠️  Network error: {e}. Using cached data.")
+        return [], 0
 
     push_days = set()
     total_commits = 0
@@ -35,7 +43,6 @@ def fetch_recent_commits():
 
 
 def calculate_streak(active_days):
-    from datetime import timedelta
     if not active_days:
         return 0
     streak = 0
@@ -50,10 +57,26 @@ def calculate_streak(active_days):
 
 
 def main():
-    with open(METRICS_FILE) as f:
-        metrics = json.load(f)
+    try:
+        with open(METRICS_FILE) as f:
+            metrics = json.load(f)
+    except Exception:
+        metrics = {
+            "last_updated": "",
+            "total_commits": 0,
+            "current_streak": 0,
+            "longest_streak": 0,
+            "active_days": [],
+            "weekly": {"commits": 0, "lines_added": 0, "lines_removed": 0}
+        }
 
     active_days, total_commits = fetch_recent_commits()
+
+    if not active_days and total_commits == 0:
+        print("⚠️  No data from API, keeping cached values.")
+        active_days = metrics.get("active_days", [])
+        total_commits = metrics.get("total_commits", 0)
+
     current_streak = calculate_streak(active_days)
     longest_streak = max(metrics.get("longest_streak", 0), current_streak)
 
