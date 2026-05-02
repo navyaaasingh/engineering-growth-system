@@ -88,11 +88,11 @@ def main():
         "active_days":    active_days[:30],
     })
 
-    with open(METRICS_FILE, "w") as f:
-        json.dump(metrics, f, indent=2)
+    #with open(METRICS_FILE, "w") as f:
+        #json.dump(metrics, f, indent=2)
 
-    print(f"✅ Metrics updated — streak: {current_streak} days, commits: {total_commits}")
+    #print(f"✅ Metrics updated — streak: {current_streak} days, commits: {total_commits}")
 
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+ #   main()
