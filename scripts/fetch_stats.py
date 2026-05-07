@@ -80,7 +80,7 @@ def main():
     current_streak = calculate_streak(active_days)
     longest_streak = max(metrics.get("longest_streak", 0), current_streak)
 
-    metrics.update({
+    #metrics.update({
         "last_updated":   datetime.now(timezone.utc).isoformat(),
         "total_commits":  total_commits,
         "current_streak": current_streak,
