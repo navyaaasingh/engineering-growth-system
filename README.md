@@ -1,4 +1,4 @@
-# 🚀 Engineering Growth System
+# Engineering Growth System
 
 Automatically tracks and commits your GitHub engineering activity every day.
 
