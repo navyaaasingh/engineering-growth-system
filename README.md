@@ -34,7 +34,7 @@ Go to **Settings → Secrets → Actions** and add:
 GitHub Actions will run automatically at midnight UTC every day.
 You can also trigger it manually from the **Actions** tab.
 
-## Running locally
+## 4. Running locally
 
 ```bash
 export GITHUB_USERNAME="your-username"
